@@ -1,0 +1,32 @@
+pi@Awaz:~/WUSTL/test_programs $ ./dense_mm 1000
+Generating matrices...
+Multiplying matrices...
+^C
+pi@Awaz:~/WUSTL/test_programs $ 
+
+
+pi@Awaz:~/WUSTL/test_programs $ ./dense_mm 500
+Generating matrices...
+Multiplying matrices...
+^C^C^C^C^C^C^C^C^C^C^C^C^C^C^CMultiplication done!
+Number of times SIGINT called:  15
+pi@Awaz:~/WUSTL/test_programs $ 
+
+
+i: 49987
+i: 49988
+i: 49989
+i: 49990
+i: 49991
+i: 49992
+i: 49993
+i: 49994
+i: 49995
+i: 49996
+i: 49997
+i: 49998
+i: 49999
+38786 was possibly interrupted
+pi@Awaz:~/WUSTL/test_programs $ ^C
+
+Note: did not print the correct value of i
