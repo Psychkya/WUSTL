@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #define size 50000
 
@@ -21,6 +22,11 @@ void sigint_handler( int signum ){
 int main (int argc, char* argv[]){
 
 	struct sigaction ss;
+	
+	//The following lines of code was to introduce a delay
+	//struct timespec t1, t2;
+	//t1.tv_sec = 0;
+	//t1.tv_nsec = 50000;
 
 	ss.sa_handler = sigint_handler;
 	ss.sa_flags = SA_RESTART;
@@ -29,10 +35,12 @@ int main (int argc, char* argv[]){
 
 	for(i = 0; i < size; i++){
 		printf("inside main i: %d\n", i);
+		//The if block is to check what gets displayed when ctrl+c is pressed
 		if(called[i] == 1)
 		{
 			break;
 		}
+		//nanosleep(&t1, &t2); //Sleep for 50000 ns
 	}
 
 	

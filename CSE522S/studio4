@@ -1,0 +1,33 @@
+1. Nayan Saikia and Zhenghan
+2.
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ ./pipes_studio4 
+Hello Mama!
+Acknowledge your child!
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ 
+3. 
+Programming running:
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ ./fifo_studio4 
+
+
+Shows fifo file is created:
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ ls -l
+total 36
+-rwxr-xr-x 1 pi pi 8660 Jan 26 09:24 fifo_studio4
+-rw-r--r-- 1 pi pi 1347 Jan 26 09:25 fifo_stuido4.c
+-rw-r--r-- 1 pi pi 1347 Jan 26 09:26 fifo_stuido4_rw.c
+prw-r--r-- 1 pi pi    0 Jan 26 09:28 fifotest
+-rwxr-xr-x 1 pi pi 8580 Jan 23 16:41 pipes_studio4
+-rw-r--r-- 1 pi pi 1579 Jan 23 16:40 pipes_studio4.c
+
+Echo some messages to fifo file:
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ echo "fee fi fo fum!" > fifotest 
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ 
+
+Output on terminal window running program:
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ ./fifo_studio4 
+fee fi fo fum!
+
+Exit program using Ctrl+C which will close and delete FIFO file:
+pi@Awaz:~/WUSTL/CSE522S/pipes_programs $ ./fifo_studio4 fee fi fo fum!
+^CTerminated
+

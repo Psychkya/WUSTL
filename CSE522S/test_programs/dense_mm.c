@@ -16,6 +16,8 @@
 #include <stdio.h>  //For printf()
 #include <stdlib.h> //for exit() and atoi()
 #include <signal.h> //for signal handling
+#include <unistd.h>
+#include <string.h>
 
 const int num_expected_args = 2;
 const unsigned sqrt_of_UINT32_MAX = 65536;
@@ -87,4 +89,7 @@ int main( int argc, char* argv[] ){
 void rpi_signal_handler(int rpiSig)
 {
 	sig_counter++;
+	char* msg = "inside handler\n";
+	write(0, msg, strlen(msg));
+	return;	
 }

@@ -1,0 +1,61 @@
+1. Nayan Saikia
+2. 
+pi@Awaz:~/WUSTL/test_programs $ ./dense_mm 1000
+Generating matrices...
+Multiplying matrices...
+^C
+pi@Awaz:~/WUSTL/test_programs $ 
+
+3.
+pi@Awaz:~/WUSTL/test_programs $ ./dense_mm 500
+Generating matrices...
+Multiplying matrices...
+^C^C^C^C^C^C^C^C^C^C^C^C^C^C^CMultiplication done!
+Number of times SIGINT called:  15
+pi@Awaz:~/WUSTL/test_programs $ 
+
+4. 
+i: 49987
+i: 49988
+i: 49989
+i: 49990
+i: 49991
+i: 49992
+i: 49993
+i: 49994
+i: 49995
+i: 49996
+i: 49997
+i: 49998
+i: 49999
+38786 was possibly interrupted
+pi@Awaz:~/WUSTL/test_programs $ ^C
+
+Note: Shows the value of i when ctr+c was called. However, if we put a break point when ctrl+c is called, we can see that the value of i is different in both cases. Output as below:
+
+inside main i: 5833
+inside main i: 5834
+inside main i: 5835
+inside main i: 5836
+inside mai^C
+6562 was possibly interrupted
+pi@Awaz:~/WUSTL/CSE522S/test_programs $ 
+
+5.
+The following output is by putting breaking when ctrl+c is pressed. Without the break,
+you cannot see the output from the signal handler.
+
+inside main i: 4498
+inside main i: 4499
+inside main i: 4500
+inside main i: 4501
+inside main i: 4502
+inside main i: 4503
+inside main i: 4504
+inside main i: 4505
+inside ma^Cinside handler
+
+5238 was possibly interrupted
+pi@Awaz:~/WUSTL/CSE522S/test_programs $ 
+
+
