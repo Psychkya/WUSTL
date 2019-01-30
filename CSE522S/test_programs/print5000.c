@@ -5,7 +5,7 @@
 #include <string.h>
 #include <time.h>
 
-#define size 50000
+#define size 5000
 
 volatile int i;
 
@@ -36,10 +36,10 @@ int main (int argc, char* argv[]){
 	for(i = 0; i < size; i++){
 		printf("inside main i: %d\n", i);
 		//The if block is to check what gets displayed when ctrl+c is pressed
-		if(called[i] == 1)
-		{
-			break;
-		}
+		//if(called[i] == 1)
+		//{
+			//break;
+		//}
 		//nanosleep(&t1, &t2); //Sleep for 50000 ns
 	}
 
