@@ -11,8 +11,8 @@
 
 #define SOCK_FILE "/tmp/sockfile"
 #define BACK_LOG 50
-//#define IP_ADDR "128.252.167.161"
-#define IP_ADDR "127.0.0.1"
+#define IP_ADDR "128.252.167.161"
+//#define IP_ADDR "127.0.0.1"
 #define PORT 9000
 
 int main(int argc, char* argv[])

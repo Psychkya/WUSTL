@@ -1,0 +1,35 @@
+1. Nayan and Zhenghan
+2. Provide code io_event1.c
+
+String entered is 'stuff' and enter key is pressed. Once ctrl+D is pressed, program quits
+pi@Awaz:~/WUSTL/CSE522S/IO_event $ ./io_event1 
+stuff
+Len: 6, Data: stuff
+
+Output once ctrl+d is pressed:
+pi@Awaz:~/WUSTL/CSE522S/IO_event $ ./io_event1 
+stuff
+Len: 6, Data: stuff
+
+Quiting....
+3. Provide files under IO_select (need to update message)
+
+Output from server when input is provided via stdin and then ctrl+D is pressed:
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ ./io_event_server 
+stuff
+Len: 6, Data: stuff
+
+Quiting....
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ 
+
+Output from server after client runs:
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ ./io_event_server 
+New connection establised
+Quiting....
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ 
+
+Output from client:
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ ./socket_client_inet 
+Message from server: Hello client!
+
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ 
