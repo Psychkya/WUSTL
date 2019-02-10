@@ -28,11 +28,13 @@ int create_socket()
 		perror("Listen error");
 		return -1;
 	}
+	printf("Server is listening...\n");
 	return 0;
 }
 
 int accept_connection()
 {
+	printf("Accepting connection....\n");
     
     int c_len = sizeof(c_address);		
 	if((rw_fd = accept(server_fd, (struct sockaddr*)&c_address, &c_len)) < 0)		
@@ -56,8 +58,9 @@ int send_to_client(char* send_buff, unsigned int buff_size)
 
 }
 
-int recv_from_client(char* recv_buff, unsigned int buff_size);
+int recv_from_client(char* recv_buff, unsigned int buff_size)
 {
+
 	int ret = read(rw_fd, recv_buff, buff_size);
 	if (ret < 0)
 	{
@@ -77,30 +80,46 @@ int recv_from_client(char* recv_buff, unsigned int buff_size);
 
 void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned int* malloc_len, char delim)
 {
-	char* found = strchr(store_buff, delim);
-	if (found != NULL);
+	char* found = strchr(recv_buff, delim);
+	if (found != NULL)
 	{
-		recv_buff[recv_len + 1] = '\0';
-		printf("%s", recv_buff);
-		free(store_buff);
-		malloc_len = 0;
+		if (store_buff == NULL)
+		{
+			recv_buff[recv_len + 1] = '\0';
+			printf("%s", recv_buff);
+		}
+		else
+		{
+			if (recv_len >= *malloc_len)
+			{
+				store_buff = (char*)(realloc(store_buff, (*malloc_len + recv_len + 1) * sizeof(char)));
+			}
+			strncpy(store_buff, recv_buff, recv_len);
+			int store_len = strlen(store_buff);
+			store_buff[store_len + 1] = '\0';
+			printf("%s", store_buff);
+			free(store_buff);
+			store_buff = NULL;
+			*malloc_len = 0;
+		}
 	}
-	else if (malloc_len == 0)
+	else if (*malloc_len == 0)
 	{
 		store_buff = (char*)(malloc(2048 * sizeof(char)));
 		memcpy(store_buff, recv_buff, recv_len);
-		malloc_len = 2048 - recv_len;
+		*malloc_len = 2048 - recv_len;
 		
 	}
-	else if(recv_len >= malloc_len)
+	else if(recv_len >= *malloc_len)
 	{
 		store_buff = (char*)(realloc(store_buff, 2048 * sizeof(char)));
-		malloc_len = 2048 - recv_len;
+		strncpy(store_buff, recv_buff, recv_len);
+		*malloc_len = 2048 - recv_len;
 	}
 	else
 	{
 		strncpy(store_buff, recv_buff, recv_len);
-		malloc_len -= recv_len;
+		*malloc_len -= recv_len;
 	}
 	//Print and reshuffle buffer
 	/*

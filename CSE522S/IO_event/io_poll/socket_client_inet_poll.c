@@ -18,7 +18,7 @@
 int main(void)
 {
 
-	char read_buff[1000];
+	char send_buff[1000];
 	int client_fd;
 
 	struct sockaddr_in c_address;
@@ -40,15 +40,14 @@ int main(void)
 		perror("Connect error");
 		return -1;
 	}
-
-	int ret = read(client_fd, read_buff, sizeof(read_buff));
-	if (ret < 0)
-	{
-		perror("read");
-		return -1;
-	}
+	printf("Connection establised....\n");
 	
-	printf("Message from server: %s\n", read_buff);
+	strcpy(send_buff, "First Message to Server\n");
+	send(client_fd, send_buff, strlen(send_buff), 0);
+	strcpy(send_buff, "Second Message to Server ");
+	send(client_fd, send_buff, strlen(send_buff), 0);	
+	strcpy(send_buff, "Third Message to Server\n");
+	send(client_fd, send_buff, strlen(send_buff), 0);		
 	
 	close(client_fd);
 	return 0;

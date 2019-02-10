@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <poll.h>
 #include "socket_server_inet.h"
 #define DELIMITER '\n'
 
@@ -18,6 +19,7 @@ int main(void)
 	char buff[100];
 	unsigned int malloc_len = 0;
 	char* store_buff = NULL;
+	int numfds = 0;
 
 	if(create_socket() < 0)
 	{
@@ -27,13 +29,15 @@ int main(void)
 
 	fds[0].fd = STDIN_FILENO;
 	fds[0].events = POLLIN;
+	numfds++;
 	fds[1].fd = server_fd;
-	fds[1].fd = POLLIN;
+	fds[1].events = POLLIN;
+	numfds++;
 	
 	while(read_flag)
 	{
 		
-		retval = poll (fds, 2, -1); //poll indefinitely
+		retval = poll (fds, numfds, -1); //poll indefinitely
 
 		if (retval == -1)
 		{
@@ -48,7 +52,7 @@ int main(void)
 				int ret = read(STDIN_FILENO, buff, 99);
 				if (ret > 0)
 				{
-					printf("Len: %d, Data: %s\n", len, buff);
+					printf("Len: %d, Data: %s\n", ret, buff);
 
 				}
 				else if (ret < 0)
@@ -64,27 +68,34 @@ int main(void)
 			}
 			if(fds[1].revents & POLLIN)
 			{
-				if(talk_2_client() < 0)
+				if(accept_connection() < 0)
 				{
 					printf("Communication problem\n");
 					return -1;
 				}
 				fds[2].fd = rw_fd;
 				fds[2].events = POLLIN;
+				numfds++;
 
 			}
 			if(fds[2].revents & POLLIN)
 			{
+
 				char recv_buff[1024];
 				unsigned int s = sizeof(recv_buff) - 1;
 				
 				int recv_len = recv_from_client(recv_buff, s);
 				if (recv_len == 0)
 				{
+					printf("Closing socket connections....\n");
 					fds[1].fd = -1;
 					fds[2].fd = -1;
 					close(server_fd);
 					close(rw_fd);
+				}
+				else if (recv_len < 0)
+				{
+					return recv_len;
 				}
 				else
 				{

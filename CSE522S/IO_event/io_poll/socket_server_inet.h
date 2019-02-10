@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define BACK_LOG 50
 #define PORT 9000

@@ -6,7 +6,7 @@ TARGET = io_event_server
 S_TEMP = $(wildcard ./*.c)
 
 #Filter out any .c files that should not be part of this executable
-S_FILTER = ./socket_client_inet.c ./io_event1.c
+S_FILTER = ./socket_client_inet_poll.c
 SOURCE = $(filter-out $(S_FILTER),$(S_TEMP))
 
 #Collect all header libraries
