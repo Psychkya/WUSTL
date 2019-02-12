@@ -15,7 +15,7 @@
 #define IP_ADDR "127.0.0.1"
 #define PORT 9000
 
-int main(void)
+int main(int argc, char* argv[])
 {
 
 	char send_buff[1000];
@@ -40,15 +40,31 @@ int main(void)
 		perror("Connect error");
 		return -1;
 	}
-	printf("Connection establised....\n");
-	
-	strcpy(send_buff, "First Message to Server\n");
-	send(client_fd, send_buff, strlen(send_buff), 0);
-	strcpy(send_buff, "Second Message to Server ");
-	send(client_fd, send_buff, strlen(send_buff), 0);	
-	strcpy(send_buff, "Third Message to Server\n");
-	send(client_fd, send_buff, strlen(send_buff), 0);		
-	
+	if (argc > 1)
+	{
+		if(strcmp(argv[1], "Quit") == 0)
+		{
+			printf("Sending quit command to server...\n");
+			strcpy(send_buff, argv[1]);
+			send(client_fd, send_buff, strlen(send_buff), 0);
+		}
+		else
+		{
+			printf("Incorrect commmand entered..proceeding with normal operation\n");
+			strcpy(send_buff, "First Message to Server\n");
+			send(client_fd, send_buff, strlen(send_buff), 0);
+			strcpy(send_buff, "Second Message to Server\n");
+			send(client_fd, send_buff, strlen(send_buff), 0);
+		}
+	}
+	else
+	{
+		printf("Sending to server....\n");
+		strcpy(send_buff, "First Message to Server\n");
+		send(client_fd, send_buff, strlen(send_buff), 0);	
+		strcpy(send_buff, "Second Message to Server\n");
+		send(client_fd, send_buff, strlen(send_buff), 0);			
+	}
 	close(client_fd);
 	return 0;
 

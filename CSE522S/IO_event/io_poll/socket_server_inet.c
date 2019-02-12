@@ -78,7 +78,7 @@ int recv_from_client(char* recv_buff, unsigned int buff_size)
 		
 }
 
-void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned int* malloc_len, char delim)
+void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned int* malloc_len, char delim) //check - should be strcat instead of strncpy (or use ptr math)
 {
 	char* found = strchr(recv_buff, delim);
 	if (found != NULL)
@@ -87,6 +87,7 @@ void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned i
 		{
 			recv_buff[recv_len + 1] = '\0';
 			printf("%s", recv_buff);
+			
 		}
 		else
 		{

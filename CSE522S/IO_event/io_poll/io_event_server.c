@@ -62,8 +62,9 @@ int main(void)
 				}
 				else
 				{
-					printf("Quiting....\n");
-					read_flag = 0;
+					fds[0].fd = -1;
+					//numfds--;
+					printf("Removing stdin from pooling: %d\n", numfds);					
 				}
 			}
 			if(fds[1].revents & POLLIN)
@@ -73,6 +74,7 @@ int main(void)
 					printf("Communication problem\n");
 					return -1;
 				}
+				printf("Connection accepted...\n");
 				fds[2].fd = rw_fd;
 				fds[2].events = POLLIN;
 				numfds++;
@@ -80,17 +82,15 @@ int main(void)
 			}
 			if(fds[2].revents & POLLIN)
 			{
-
+				printf("got data...\n");
 				char recv_buff[1024];
 				unsigned int s = sizeof(recv_buff) - 1;
-				
+				memset(recv_buff, 0, sizeof(recv_buff));				
 				int recv_len = recv_from_client(recv_buff, s);
 				if (recv_len == 0)
 				{
-					printf("Closing socket connections....\n");
-					fds[1].fd = -1;
+					printf("Closing connection....\n");
 					fds[2].fd = -1;
-					close(server_fd);
 					close(rw_fd);
 				}
 				else if (recv_len < 0)
@@ -99,7 +99,20 @@ int main(void)
 				}
 				else
 				{
-					store_and_print(recv_buff, recv_len, store_buff, &malloc_len, DELIMITER);
+					printf("Print buff: %s\n", recv_buff);
+					if (strcmp(recv_buff, "Quit") == 0)
+					{
+						printf("Terminating program...\n");
+						for (int i = 0; i < numfds; i++)
+						{
+							close(fds[i].fd);
+						}
+						read_flag = 0;						
+					}
+					else
+					{
+						store_and_print(recv_buff, recv_len, store_buff, &malloc_len, DELIMITER);
+					}
 
 				}
 				

@@ -33,3 +33,29 @@ pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ ./socket_client_inet
 Message from server: Hello client!
 
 pi@Awaz:~/WUSTL/CSE522S/IO_event/io_select $ 
+
+4. Client sends three messages to server. The first message has a LF. The second message
+does not and the third message does have it. The server announces 'New connection
+established' when a client makes connection. Server prints first message since it has
+LF. But it prints second and third message together since only third message has LF. 
+Once client closes FD, server closes the connection and associated FDs. It goes back
+to polling in stdin. Once ctrl+D is pressed on the server side, it terminates the program.
+
+Client output:
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_poll $ ./socket_client_inet_poll 
+Connection establised....
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_poll $ 
+
+Server output:
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_poll $ ./io_event_server 
+Server is listening...
+Accepting connection....
+New connection establised
+First Message to Server
+Second Message to Server Third Message to Server
+Closing socket connections....
+asd
+Len: 4, Data: asd
+
+Quiting....
+pi@Awaz:~/WUSTL/CSE522S/IO_event/io_poll $
