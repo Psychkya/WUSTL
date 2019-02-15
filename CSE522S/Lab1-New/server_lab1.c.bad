@@ -1,0 +1,115 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#define READ_SIZE 1046
+
+void parse_buffer(char** buff, int total_len);
+
+int main (int argc, char* argv[])
+{
+	if (argc != 3)
+	{
+		printf("Incorrect usage\n");
+		printf("Usage: server_lab1 <name of spec file> <port to listen>\n"); //check for port?
+		return -1;
+	}
+  
+  int spec_fd, read_flag = 1, len_spec_read = 0, total_buffer_len = 0, malloc_len = 0, ptr_loc = 0;
+  char *spec_buffer = NULL;
+  char temp_buffer[READ_SIZE];
+
+
+  spec_fd = open(argv[1], O_RDONLY);
+  if (spec_fd < 0)
+  {
+    perror("Open");
+    return -1;
+  }
+
+  while (read_flag)
+  {
+    len_spec_read = read(spec_fd, temp_buffer, READ_SIZE);
+    if (len_spec_read < 0)
+		{
+			perror("Read");
+			return len_spec_read;
+		}
+		else if (len_spec_read == 0)
+		{
+			close(spec_fd);
+			read_flag = 0;
+		}
+    else
+		{
+
+			if(len_spec_read >= malloc_len)
+			{
+				total_buffer_len += 2 * READ_SIZE + 1;
+        printf("Reaching here\n");
+				spec_buffer = (char*)realloc(spec_buffer, total_buffer_len);
+        printf("Reaching here2\n");
+				//printf("D1: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
+				strncpy(spec_buffer + ptr_loc, temp_buffer, len_spec_read);
+				ptr_loc  += len_spec_read;
+				//printf("s2: %s\n", *buff);
+				malloc_len = total_buffer_len - len_spec_read;
+				//printf("D2: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
+			}
+			else
+			{
+				//printf("S1: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
+				strncpy(spec_buffer + ptr_loc, temp_buffer, len_spec_read);
+				ptr_loc = +len_spec_read;
+				malloc_len -= len_spec_read; 
+				//printf("S2: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
+				
+			}
+      printf("Buffer1: %s\n", spec_buffer);
+      parse_buffer(&spec_buffer, total_buffer_len);
+      printf("Buffer2: %s\n", spec_buffer);
+
+		}
+
+  }
+
+
+
+
+  free(spec_buffer);
+  return 0;
+}
+
+void parse_buffer(char** buff, int total_len)
+{
+  char *file_name = NULL;
+   //start searching from the position of last know LF. The first time it will be the beginning of buffer.
+   char* found = strchr(*buff, '\n'); 
+   int loc = 0;
+   if (found != NULL)
+   {
+      loc = found - *buff; //first relative position where LF is located
+      file_name = malloc(loc+1);
+      memcpy(file_name, *buff, loc);
+      printf("file name: %s", file_name);
+      free(file_name);
+      *buff = (char*)realloc(*buff+loc, total_len);
+   }
+}

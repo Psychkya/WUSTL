@@ -1,4 +1,4 @@
-#include "read_fds.h"
+#include "read_parse_spec_file.h"
 
 
 int read_fd (int *fd, char** buff, int len)
@@ -50,3 +50,35 @@ int read_fd (int *fd, char** buff, int len)
 	}
 	return total_len;
 }
+
+int parse_buffer(char** buff, char** p_buff, int buff_len, int p_len, int ptr_loc)
+{
+   //start searching from the position of last know LF. The first time it will be the beginning of buffer.
+   char* found = strchr(*buff + ptr_loc, '\n'); 
+   int loc = 0;
+   if (found != NULL)
+   {
+      loc = found - (*buff + ptr_loc) + 1; //first relative position where LF is located
+      printf("ptr loc: %d, loc: %d, size of p buff:%d\n", ptr_loc, loc, p_len);
+      //printf("buff: %s\n", *buff + ptr_loc);
+      if (loc >= p_len) //if number of bytes to relative position is greater than original length of output buffer, increase it
+      {
+        *p_buff = malloc((p_len + loc)*sizeof(char));
+      }
+      memcpy(*p_buff, *buff + ptr_loc, loc - 1); //copy from buffer to output buffer
+   }
+   else
+   {
+      if (buff_len - ptr_loc > 0)
+      {
+		  memcpy(*p_buff, *buff+ptr_loc, buff_len - ptr_loc);
+	  }
+	  else
+	  {
+		strcpy(*p_buff, "Not found"); //Not finding the last one - need some additional logic
+	  }
+	  loc = -1;
+   }
+   return loc;
+}
+
