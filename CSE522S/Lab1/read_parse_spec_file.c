@@ -13,7 +13,6 @@ int read_fd (int *fd, char** buff, int len)
 		len_spec = 0;
 		memset(temp_buff, 0, len);
 		len_spec = read(*fd, temp_buff, len);
-		//printf("Len:%d, Data: %d, RS1: %s\n", len_spec, len, temp_buff);
 		if (len_spec < 0)
 		{
 			perror("Read");
@@ -30,25 +29,20 @@ int read_fd (int *fd, char** buff, int len)
 			{
 				total_len += 2 * len + 1;
 				*buff = (char*)realloc(*buff, total_len);
-				//printf("D1: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
 				strncpy(*buff + ptr_loc, temp_buff, len_spec);
 				ptr_loc  += len_spec;
-				//printf("s2: %s\n", *buff);
 				malloc_len = total_len - len_spec;
-				//printf("D2: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
 			}
 			else
 			{
-				//printf("S1: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
 				strncpy(*buff + ptr_loc, temp_buff, len_spec);
-				ptr_loc = +len_spec;
+				ptr_loc += len_spec;
 				malloc_len -= len_spec; 
-				//printf("S2: %d, buff: %d, total_len: %d, ptr_loc: %d, malloc: %d\n", len_spec, len, total_len, ptr_loc, malloc_len);
 				
 			}
 		}
 	}
-	return total_len;
+	return ptr_loc;
 }
 
 int parse_buffer(char** buff, char** p_buff, int buff_len, int p_len, int ptr_loc)
@@ -59,8 +53,6 @@ int parse_buffer(char** buff, char** p_buff, int buff_len, int p_len, int ptr_lo
    if (found != NULL)
    {
       loc = found - (*buff + ptr_loc) + 1; //first relative position where LF is located
-      printf("ptr loc: %d, loc: %d, size of p buff:%d\n", ptr_loc, loc, p_len);
-      //printf("buff: %s\n", *buff + ptr_loc);
       if (loc >= p_len) //if number of bytes to relative position is greater than original length of output buffer, increase it
       {
         *p_buff = malloc((p_len + loc)*sizeof(char));
