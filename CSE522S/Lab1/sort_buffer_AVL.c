@@ -160,25 +160,75 @@ void sort_buffer_AVL(char *input_buffer, char *output_buffer, int buffer_len)
             ptr= realloc(ptr, (count + 10 * 2) * sizeof(struct Line)); 
         }
         
-        //memset(p_buffer, 0, sizeof(p_buffer));
+        memset(p_buffer, 0, sizeof(p_buffer));
         parse_len = parse_buffer(input_buffer, &p_buffer, buffer_len, ptr_loc); //ptr_loc provides next relative position of pointer
         ptr_loc += parse_len;
-        printf("l:%s",p_buffer);
+        printf("d:%d, l:%s",strlen(p_buffer), p_buffer);
         
         int n = -1;
         ptr[count]= (struct Line*)malloc(sizeof(struct Line)); 
         int read = sscanf(p_buffer, "%d", &n);
-        char* string = malloc(strlen(p_buffer) * sizeof(char));
+        //char* string = malloc(strlen(p_buffer) * sizeof(char));
+        //ptr[count]->content = malloc(strlen(p_buffer) * sizeof(char));
+        ptr[count]->content = malloc((strlen(p_buffer)+1) * sizeof(char));
         //= (char *) malloc(128);;
-        strcpy(string, p_buffer);
+        strncpy(ptr[count]->content, p_buffer, strlen(p_buffer));
+        ptr[count]->content[strlen(p_buffer) + 1] = '\0'; 
+        //printf("String: %d: %s", strlen(string), string);
+        printf("String: %d: %s", strlen(ptr[count]->content), ptr[count]->content);
         ptr[count]->num = n;
-        ptr[count]->content = string;
+        //ptr[count]->content = string;
         root = insert(root, ptr[count]); 
         count++;
         if (buffer_len - ptr_loc <= 0) break;
 
     }    
+    free(p_buffer);
     printInorder(root, output_buffer, &output_ptr);
     
 
 }
+
+void merge(struct Line* arr1[], struct Line* arr2[],struct Line *mergedArr[], int m, int n) 
+{ 
+    // mergedArr[] is going to contain result 
+    //struct Line *mergedArr[m + n]; 
+   // *mergedArr
+    int i = 0, j = 0, k = 0; 
+  
+    // Traverse through both arrays 
+    while (i < m && j < n) 
+    { 
+        // Pick the smaler element and put it in mergedArr 
+        if (comparator(arr1[i],arr2[j]) <0)
+        { 
+            mergedArr[k] = arr1[i]; 
+            i++; 
+        } 
+        else
+        { 
+            mergedArr[k] = arr2[j]; 
+            j++; 
+        } 
+        k++; 
+    } 
+  
+    // If there are more elements in first array 
+    if (m > n)
+    {
+        while (i < m) 
+        { 
+            mergedArr[k] = arr1[i]; 
+            i++; k++; 
+        }
+    }
+    else
+    {
+        while (j < n) 
+        { 
+            mergedArr[k] = arr2[j]; 
+            j++; k++; 
+        }
+    }
+}
+

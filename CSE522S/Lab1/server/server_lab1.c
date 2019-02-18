@@ -16,6 +16,7 @@
 #include <poll.h>
 #include "read_parse_spec_file.h"
 #include "socket_server_inet_lab1.h"
+#include "sort_buffer_AVL.h"
 #define READ_SIZE 1456   //length that can be sent over a socket without defragmentation
 #define WRITE_SIZE 1456  //length that can be sent over a socket without defragmentation
 #define NUM_FRAG_FILES 100  //Initial number of frag files
@@ -264,6 +265,79 @@ int main (int argc, char* argv[])
       }
     }
   }
+
+  //MERGE LOGIC HERE
+  //Reconstruct the structure arrays on the server side
+
+  
+  struct Line **temp_avl;
+  struct Line **merged_avl;
+  int temp_count = 0;
+  int first_pass = 1;
+
+  for (int i = 0; i < frag_file_count - 1; i++)
+  {
+    struct Node *root = NULL; 
+    parse_len = 0, ptr_loc = 0;
+    int count=0;
+    struct Line **server_avl;
+    server_avl = malloc(10 * sizeof(struct Line*)); //starting with 10 lines per file
+    char* buff_line = malloc(100*sizeof(char));
+    while (parse_len < server_recv_len[i] && parse_len > -1)
+    {
+        if (count >= 10)
+        {
+            server_avl= realloc(server_avl, (count + 10 * 2) * sizeof(struct Line)); 
+        }
+        parse_len = parse_buffer(server_recv_buffer[i], &buff_line, server_recv_len[i], ptr_loc); //ptr_loc provides next relative position of pointer
+        ptr_loc += parse_len;
+        int n = -1;
+        server_avl[count]= (struct Line*)malloc(sizeof(struct Line)); 
+        int read = sscanf(buff_line, "%d", &n);
+        server_avl[count]->content = malloc((strlen(buff_line)+1) * sizeof(char));
+        strncpy(server_avl[count]->content, buff_line, strlen(buff_line));
+        server_avl[count]->content[strlen(buff_line) + 1] = '\0'; 
+        printf("String: %d: %s", strlen(server_avl[count]->content), server_avl[count]->content);
+        server_avl[count]->num = n;
+        root = insert(root, server_avl[count]); 
+        count++;
+        if (server_recv_len[i] - ptr_loc <= 0) break;
+    }    
+    if (!first_pass)
+    {
+      printf("Seg fault 1\n");
+      free(merged_avl);
+    }
+    first_pass = 0;
+    printf("Count: %d, temp_count: %d\n", count, temp_count);
+    printf("Seg fault 9\n");
+    merged_avl = malloc((temp_count + count) * sizeof(struct Line*));
+    printf("Seg fault 10\n");
+    merge(server_avl, temp_avl, merged_avl, count, temp_count);
+    temp_count += count;
+    printf("Seg fault 11\n");
+    temp_avl = malloc(temp_count * sizeof(struct Line*));
+    printf("Seg fault 12\n");
+    for (int i = 0; i < temp_count; i++)
+    {
+      temp_avl[i] = merged_avl[i];
+    }
+    printf("Seg fault 2\n");
+    free(buff_line);
+    printf("Seg fault 3\n");
+    printf("Merged AVL here: %d\n",temp_count);
+    for (int j=0; j < temp_count; j++)
+    {
+      printf("%s", merged_avl[j]->content);
+    }    
+  }  
+
+  printf("Final merge:\n");
+  for (int j=0; j < temp_count; j++)
+  {
+    printf("%s", merged_avl[j]->content);
+  }
+
 
   for (int i = 0; i < frag_file_count - 1; i++)
   {

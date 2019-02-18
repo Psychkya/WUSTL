@@ -19,7 +19,7 @@
 //Structure to hold lines from each file
 struct Line 
 { 
-    int num; 
+    int num;
     char* content; 
 };
 
@@ -62,5 +62,9 @@ struct Node* insert(struct Node* node, struct Line *key);
 //Retrieve each value in order
 void printInorder(struct Node* node, char* output_buffer, int *output_ptr);
 
+
 //Call AVL insert function
 void sort_buffer_AVL(char *input_buffer, char *output_buffer, int read_buff_len);
+
+
+void merge(struct Line* arr1[], struct Line* arr2[],struct Line *mergedArr[], int m, int n);

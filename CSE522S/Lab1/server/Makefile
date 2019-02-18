@@ -7,7 +7,7 @@ TARGET = server_lab1
 S_TEMP = $(wildcard ./*.c) $(wildcard ../*.c)
 
 #Filter out any .c files that should not be part of this executable
-S_FILTER =  ../insert_avl.c
+S_FILTER =  
 SOURCE = $(filter-out $(S_FILTER),$(S_TEMP))
 
 #Collect all header libraries
