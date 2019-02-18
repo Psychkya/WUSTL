@@ -10,4 +10,5 @@
 #include <fcntl.h>
 
 int read_fd(int*  fd, char** buff, int len);
-int parse_buffer(char** buff, char** p_buff, int buff_len, int p_len, int ptr_loc);
+//int parse_buffer(char* buff, char** p_buff, int buff_len, int p_len, int ptr_loc);
+int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc);

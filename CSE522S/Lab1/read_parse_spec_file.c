@@ -45,25 +45,26 @@ int read_fd (int *fd, char** buff, int len)
 	return ptr_loc;
 }
 
-int parse_buffer(char** buff, char** p_buff, int buff_len, int p_len, int ptr_loc)
+int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc)
 {
    //start searching from the position of last know LF. The first time it will be the beginning of buffer.
-   char* found = strchr(*buff + ptr_loc, '\n'); 
+   char* found = strchr(buff + ptr_loc, '\n'); 
    int loc = 0;
    if (found != NULL)
    {
-      loc = found - (*buff + ptr_loc) + 1; //first relative position where LF is located
-      if (loc >= p_len) //if number of bytes to relative position is greater than original length of output buffer, increase it
-      {
-        *p_buff = malloc((p_len + loc)*sizeof(char));
-      }
-      memcpy(*p_buff, *buff + ptr_loc, loc - 1); //copy from buffer to output buffer
+      loc = found - (buff + ptr_loc) + 1; //first relative position where LF is located
+	  *p_buff = malloc((loc + 1)*sizeof(char));
+    //   if (loc >= p_len) //if number of bytes to relative position is greater than original length of output buffer, increase it
+    //   {
+    //     *p_buff = malloc((loc + 1)*sizeof(char));
+    //   }
+      memcpy(*p_buff, buff + ptr_loc, loc); //copy from buffer to output buffer
    }
    else
    {
       if (buff_len - ptr_loc > 0)
       {
-		  memcpy(*p_buff, *buff+ptr_loc, buff_len - ptr_loc);
+		  memcpy(*p_buff, buff+ptr_loc, buff_len - ptr_loc);
 	  }
 	  else
 	  {

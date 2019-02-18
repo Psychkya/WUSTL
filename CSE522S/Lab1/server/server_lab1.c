@@ -52,11 +52,16 @@ int main (int argc, char* argv[])
   while (parse_len < strlen(read_buff) && parse_len > -1)
   {
 
-    parse_len = parse_buffer(&read_buff, &p_buffer, tot_len, 100, ptr_loc); //ptr_loc provides next relative position of pointer
+    parse_len = parse_buffer(read_buff, &p_buffer, tot_len, ptr_loc); //ptr_loc provides next relative position of pointer
     ptr_loc += parse_len;
+    //printf("P buffer: %s", p_buffer);
+    //Remove the newline character to get each file name
+    char *file_name = malloc(strlen(p_buffer) * sizeof(char));
+    strncpy(file_name, p_buffer, strlen(p_buffer) - 1); 
+    //printf("File name: %s", file_name);
     if (frag_file_count == 0) //the first line is the name of the final file
     {
-      if ((frag_file_fd[frag_file_count++] = open(p_buffer, O_WRONLY | O_CREAT)) < 0) //open the first file as write-create
+      if ((frag_file_fd[frag_file_count++] = open(file_name, O_WRONLY | O_CREAT)) < 0) //open the first file as write-create
       {
         perror("Final file open:");
         return -1;
@@ -69,13 +74,14 @@ int main (int argc, char* argv[])
         malloc_frag_fd += frag_file_count + NUM_FRAG_FILES;
         frag_file_fd = (int*)realloc(frag_file_fd, malloc_frag_fd * sizeof(int));
       }
-      if ((frag_file_fd[frag_file_count++] = open(p_buffer, O_RDONLY)) < 0)
+      if ((frag_file_fd[frag_file_count++] = open(file_name, O_RDONLY)) < 0)
       {
         perror("Frag file open");
         return -1;
       }
     }
-    
+    free(file_name);
+    if (tot_len - ptr_loc <= 0) break;
   }
 
   //we do not need read_buff and p_buffer anymore. Free these
@@ -114,7 +120,6 @@ int main (int argc, char* argv[])
   {
     client_send_buffer[i] = NULL; //initialize each buffer to NULL
     client_send_len[i] = read_fd(&frag_file_fd[i+1], &client_send_buffer[i], READ_SIZE); //note that first file fd is final final. hence, fd starts at i+1
-    printf("Client buff len: %d, client buff: %s\n", client_send_len[i], client_send_buffer[i]);
   }
 
   //allocate a size equal to number of files to poll_fds
@@ -131,16 +136,16 @@ int main (int argc, char* argv[])
 
   while(1)
   {
+    if (num_track_fds <= 0)
+    {
+      printf("All procesing complete\n");
+      break;
+    }    
     retval = poll(poll_fds, num_poll_fds, -1);
     if (retval < 0)
     {
       perror("poll");
       return -1;
-    }
-    if (num_track_fds <= 0)
-    {
-      printf("All procesing complete\n");
-      break;
     }
     for(int i = 0; i < num_poll_fds; i++)
     {
@@ -148,26 +153,22 @@ int main (int argc, char* argv[])
 			{
         if (poll_fds[i].fd == server_fd && num_poll_fds <= frag_file_count) //if it is server fd AND number of connections made is less than number of frag file
         {
+          if(accept_connection() < 0)
+          {
+            printf("Communication problem\n");
+            return -1;
+          }
+          poll_fds[i + num_poll_fds].fd = rw_fd;
+          poll_fds[i + num_poll_fds].events = POLLOUT;
+          first_packet[i] = 1;
+          num_poll_fds++;            
+          num_track_fds++; //this will be decreased when an fd is no longer polled
           if (num_poll_fds >= frag_file_count)
           {
             poll_fds[i].fd = -1;              
             num_track_fds--;
-            printf("num_trac_fds:%d:%d\n", i, num_track_fds);
           }
-          else
-          {
-            if(accept_connection() < 0)
-            {
-              printf("Communication problem\n");
-              return -1;
-            }
-            printf("Connection accepted...\n");
-            poll_fds[i + num_poll_fds].fd = rw_fd;
-            poll_fds[i + num_poll_fds].events = POLLOUT;
-            first_packet[i] = 1;
-            num_poll_fds++;            
-            num_track_fds++; //this will be decreased when an fd is no longer polled
-          }
+                    
         }
         else
         {
@@ -183,20 +184,19 @@ int main (int argc, char* argv[])
             }
             server_recv_len[i-1] = ntohl(temp_buff_len);
             first_packet[i-1] = 0;
-            printf("Buf len: %d\n", server_recv_len[i-1]);
-            first_packet[i-1] = 0;
+            server_recv_buffer[i-1] = malloc((server_recv_len[i-1] + 1) * sizeof(char)); //since we know length - malloc it
           }
-
-          if ((server_recv_len[i-1] - relative_read_ptr[i-1]) > 0 && (server_recv_len[i-1] - relative_read_ptr[i-1]) < READ_SIZE)
+          if ((server_recv_len[i-1] - relative_read_ptr[i-1]) > 0 && (server_recv_len[i-1] - relative_read_ptr[i-1]) <= READ_SIZE)
           {
             int ret = read(poll_fds[i].fd, server_recv_buffer[i-1] + relative_read_ptr[i-1], (server_recv_len[i-1] - relative_read_ptr[i-1]));
             if (ret < 0)
             {
-              perror("read");
+              perror("read1");
               return -1;
             }
             poll_fds[i].fd = -1;
             num_track_fds--;
+            printf("Buffer from client: %s\n", server_recv_buffer[i-1]);
           }	
           else if ((server_recv_len[i-1] - relative_read_ptr[i-1]) <= 0)
           {
@@ -205,36 +205,14 @@ int main (int argc, char* argv[])
           }
           else
           {
-            if (server_recv_len[i-1] - relative_read_ptr[i-1] >= READ_SIZE)
-            {
-              server_recv_buffer[i-1] = realloc(server_recv_buffer[i-1], READ_SIZE + (server_recv_len[i-1] - relative_read_ptr[i-1]) + 1);
-            }
             int ret = read(poll_fds[i].fd, server_recv_buffer[i-1]+relative_read_ptr[i-1], READ_SIZE);
             if (ret < 0)
             {
-              perror("read");
+              perror("read2");
               return -1;
             }			
             relative_read_ptr[i-1] += ret;
-
           }         
-         
-          // int len = read(poll_fds[i].fd, server_r_buffer + relative_read_ptr[i-1], 25);
-          // if (len < 0)
-          // {
-          //   perror("Client read");
-          //   return -1;
-          // }
-          // relative_read_ptr[i-1] += len;
-          // if (len == 0) 
-          // {
-          //   poll_fds[i].fd = -1;
-          // }
-          // else
-          // {
-          //   printf("From client: %s\n", server_r_buffer);
-          // }
-          
         }
         
 			}
@@ -253,9 +231,10 @@ int main (int argc, char* argv[])
           }          
           first_packet[i-1] = 0;
         }
-        if (client_send_len[i-1] > 0 && client_send_len[i-1] < WRITE_SIZE)
+        if (client_send_len[i-1] > 0 && client_send_len[i-1] <= WRITE_SIZE)
         {
-          int len = write(poll_fds[i].fd, client_send_buffer[i-1] + relative_write_ptr[i-1], WRITE_SIZE - client_send_len[i-1]);
+          //int len = write(poll_fds[i].fd, client_send_buffer[i-1] + relative_write_ptr[i-1], WRITE_SIZE - client_send_len[i-1]);
+          int len = write(poll_fds[i].fd, client_send_buffer[i-1] + relative_write_ptr[i-1], client_send_len[i-1]);
           if (len < 0)
           {
             perror("write to client");
@@ -288,7 +267,6 @@ int main (int argc, char* argv[])
 
   for (int i = 0; i < frag_file_count - 1; i++)
   {
-    printf("Recieved from client: %d : %s\n", i, server_recv_buffer[i]);
     free(server_recv_buffer[i]);
   }
   free(server_recv_buffer);

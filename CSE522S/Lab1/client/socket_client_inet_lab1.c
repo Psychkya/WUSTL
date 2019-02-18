@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
+#include "sort_buffer_AVL.h"
 
 #define SOCK_FILE "/tmp/sockfile"
 #define BACK_LOG 50
@@ -15,12 +16,13 @@
 #define IP_ADDR "127.0.0.1"
 #define PORT 9000
 #define READ_SIZE 1456
+#define WRITE_SIZE 1456
 
 int main(int argc, char* argv[])
 {
 
 	char *send_buff;
-	char *read_buff = malloc(READ_SIZE * sizeof(char));
+	char *read_buff;
 	int temp_buff_len;
 	int server_buff_len;
 	int first_packet = 1;
@@ -61,11 +63,10 @@ int main(int argc, char* argv[])
 			}
 			server_buff_len = ntohl(temp_buff_len);
 			first_packet = 0;
-			printf("Buf len: %d\n", server_buff_len);
-
+			read_buff = malloc((server_buff_len + 1) * sizeof(char));
 		}
 
-		if ((server_buff_len - read_ptr) > 0 && (server_buff_len - read_ptr) < READ_SIZE)
+		if ((server_buff_len - read_ptr) > 0 && (server_buff_len - read_ptr) <= READ_SIZE)
 		{
 			ret = read(client_fd, read_buff+read_ptr, (server_buff_len - read_ptr));
 			if (ret < 0)
@@ -88,36 +89,39 @@ int main(int argc, char* argv[])
 				return -1;
 			}			
 			read_ptr += ret;
-			if (server_buff_len - read_ptr >= READ_SIZE)
-			{
-				read_buff = realloc(read_buff, READ_SIZE + (server_buff_len - read_ptr) + 1);
-			}
 		}
 		
 	}
-	printf("Final buffer: %s\n", read_buff);
-
+	printf("Buffer received: %s\n", read_buff);
 	first_packet = 1;
+
+	//AVL stuff here:
+	//Got read_buff
+	//Got send_buff
+	//Already know length of buffer
+
 	send_buff = malloc(server_buff_len * sizeof(char));
 
-	memcpy(send_buff, read_buff, server_buff_len);
+	sort_buffer_AVL(read_buff, send_buff, server_buff_len);
+
+	//write buffer back to server
 
 	while(1)
 	{
 		if (first_packet)
 		{
-          int send_len_to_server = htonl(server_buff_len);
-          int len = write(client_fd, &send_len_to_server, sizeof(send_len_to_server));
-          if (len < 0)
-          {
-            perror("write to server");
-            return -1;
-          }   
-          first_packet = 0;			
+			int send_len_to_server = htonl(server_buff_len);
+			int len = write(client_fd, &send_len_to_server, sizeof(send_len_to_server));
+			if (len < 0)
+			{
+			perror("write to server");
+			return -1;
+			}   
+			first_packet = 0;			
 		}
-		if (server_buff_len > 0 && server_buff_len < READ_SIZE)
+		if (server_buff_len > 0 && server_buff_len <= WRITE_SIZE)
 		{
-			int len = write(client_fd, send_buff + write_ptr, READ_SIZE - server_buff_len);
+			int len = write(client_fd, send_buff + write_ptr, server_buff_len);
 			if (len < 0)
 			{
 				perror("write to server");
