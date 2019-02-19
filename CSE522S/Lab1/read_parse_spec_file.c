@@ -52,13 +52,10 @@ int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc)
    int loc = 0;
    if (found != NULL)
    {
-      loc = found - (buff + ptr_loc) + 1; //first relative position where LF is located
-	  *p_buff = malloc((loc + 1)*sizeof(char));
-    //   if (loc >= p_len) //if number of bytes to relative position is greater than original length of output buffer, increase it
-    //   {
-    //     *p_buff = malloc((loc + 1)*sizeof(char));
-    //   }
-      memcpy(*p_buff, buff + ptr_loc, loc); //copy from buffer to output buffer
+		loc = found - (buff + ptr_loc) + 1; //first relative position where LF is located
+		*p_buff = malloc((loc + 1)*sizeof(char));
+		memset(*p_buff, 0, loc+1);
+		memcpy(*p_buff, buff + ptr_loc, loc); //copy from buffer to output buffer
    }
    else
    {
@@ -75,3 +72,34 @@ int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc)
    return loc;
 }
 
+
+int is_string_digit(char* a)
+{
+	int result = -1;
+	int len = strlen(a);
+	for (int i = 0; i < len; i++)
+	{
+		if(a[i] >= '0' && a[i] <= '9')
+		{
+			result = 0;
+		}
+		else
+		{
+			result = -1;
+			break;
+		}
+	}
+	return result;
+
+}
+
+int string_to_int(char* a)
+{
+	int result = 0;
+	int len = strlen(a);
+	for (int i = 0; i < len; i++)
+	{
+		result = result * 10 + (a[i] - '0');
+	}
+	return result;
+}

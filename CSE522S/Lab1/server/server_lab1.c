@@ -27,19 +27,32 @@ int main (int argc, char* argv[])
 	if (argc != 3)
 	{
 		printf("Incorrect usage\n");
-		printf("Usage: server_lab1 <name of spec file> <port to listen>\n"); //check for port?
+		printf("Usage: server_lab1 <name of spec file> <port to listen>\n"); 
 		return -1;
 	}
+
+  //assign port
+  if (is_string_digit(argv[2]) < 0)
+  {
+    printf("Port entered is non numeric\n");
+    printf("Usage: server_lab1 <name of spec file> <port to listen>\n"); 
+    return -1;
+  }
+  server_port = string_to_int(argv[2]);
+
 	//define file descriptors
   int spec_file_fd;
   int *frag_file_fd = malloc(NUM_FRAG_FILES * sizeof(int)); //fds of fragmented files. first fd is the final file
   struct pollfd *poll_fds = NULL;
 
+  //house keeping variables
 	int tot_len = 0, parse_len = 0, ptr_loc = 0, frag_file_count = 0, malloc_frag_fd = NUM_FRAG_FILES, num_poll_fds = 1, num_track_fds = 1, retval = 0;
-	char *read_buff = NULL; //buffer to read entire spec file
+	
+  char *read_buff = NULL; //buffer to read entire spec file
   char *p_buffer = NULL; //buffer to retrieve name of each fragmented file
 
-	spec_file_fd = open(argv[1], O_RDONLY); //open spec file
+  //open spec file
+	spec_file_fd = open(argv[1], O_RDONLY); 
 	if (spec_file_fd < 0)
 	{
 		perror("Open");
@@ -55,14 +68,12 @@ int main (int argc, char* argv[])
 
     parse_len = parse_buffer(read_buff, &p_buffer, tot_len, ptr_loc); //ptr_loc provides next relative position of pointer
     ptr_loc += parse_len;
-    //printf("P buffer: %s", p_buffer);
     //Remove the newline character to get each file name
     char *file_name = malloc(strlen(p_buffer) * sizeof(char));
     strncpy(file_name, p_buffer, strlen(p_buffer) - 1); 
-    //printf("File name: %s", file_name);
     if (frag_file_count == 0) //the first line is the name of the final file
     {
-      if ((frag_file_fd[frag_file_count++] = open(file_name, O_WRONLY | O_CREAT)) < 0) //open the first file as write-create
+      if ((frag_file_fd[frag_file_count++] = open(file_name, O_WRONLY | O_CREAT, 0666)) < 0) //open the first file as write-create
       {
         perror("Final file open:");
         return -1;
@@ -70,7 +81,8 @@ int main (int argc, char* argv[])
     }
     else
     {
-      if (frag_file_count >= malloc_frag_fd) //the second file onwards open each file as read only
+      //the second file onwards open each file as read only
+      if (frag_file_count >= malloc_frag_fd) 
       {
         malloc_frag_fd += frag_file_count + NUM_FRAG_FILES;
         frag_file_fd = (int*)realloc(frag_file_fd, malloc_frag_fd * sizeof(int));
@@ -137,11 +149,13 @@ int main (int argc, char* argv[])
 
   while(1)
   {
+    //num_tracks_fds is decremented when a client connects. Once it is zero, all clients connected and file fragments sent
     if (num_track_fds <= 0)
     {
       printf("All procesing complete\n");
       break;
     }    
+    //poll on fds
     retval = poll(poll_fds, num_poll_fds, -1);
     if (retval < 0)
     {
@@ -152,8 +166,9 @@ int main (int argc, char* argv[])
     {
       if(poll_fds[i].revents & POLLIN)
 			{
-        if (poll_fds[i].fd == server_fd && num_poll_fds <= frag_file_count) //if it is server fd AND number of connections made is less than number of frag file
+        if (poll_fds[i].fd == server_fd && num_poll_fds <= frag_file_count) 
         {
+          //if it is server fd AND number of connections made is less than number of frag file
           if(accept_connection() < 0)
           {
             printf("Communication problem\n");
@@ -161,9 +176,10 @@ int main (int argc, char* argv[])
           }
           poll_fds[i + num_poll_fds].fd = rw_fd;
           poll_fds[i + num_poll_fds].events = POLLOUT;
-          first_packet[i] = 1;
+          first_packet[i] = 1; //set the first packet flag to 1
           num_poll_fds++;            
           num_track_fds++; //this will be decreased when an fd is no longer polled
+          //Once all clients connect, remove the server socket from polling
           if (num_poll_fds >= frag_file_count)
           {
             poll_fds[i].fd = -1;              
@@ -173,22 +189,25 @@ int main (int argc, char* argv[])
         }
         else
         {
-          /* read stuff */
+          //start reading file fragments that clients sent back
           int temp_buff_len = 0;
           if (first_packet[i-1])
           {
+            //this is the first packet read - read the length back from client. Normally should be equal to what was sent to client
             int ret = read(poll_fds[i].fd, &temp_buff_len, sizeof(temp_buff_len));
             if (ret < 0)
             {
               perror("read");
               return -1;
             }
-            server_recv_len[i-1] = ntohl(temp_buff_len);
+            server_recv_len[i-1] = ntohl(temp_buff_len); //network to host
             first_packet[i-1] = 0;
             server_recv_buffer[i-1] = malloc((server_recv_len[i-1] + 1) * sizeof(char)); //since we know length - malloc it
           }
+          //Start reading next packet onwards while keeping track of how much is read
           if ((server_recv_len[i-1] - relative_read_ptr[i-1]) > 0 && (server_recv_len[i-1] - relative_read_ptr[i-1]) <= READ_SIZE)
           {
+            //if everything is read, remove that client's fd from polling
             int ret = read(poll_fds[i].fd, server_recv_buffer[i-1] + relative_read_ptr[i-1], (server_recv_len[i-1] - relative_read_ptr[i-1]));
             if (ret < 0)
             {
@@ -197,10 +216,10 @@ int main (int argc, char* argv[])
             }
             poll_fds[i].fd = -1;
             num_track_fds--;
-            printf("Buffer from client: %s\n", server_recv_buffer[i-1]);
           }	
           else if ((server_recv_len[i-1] - relative_read_ptr[i-1]) <= 0)
           {
+            //if everything is read, remove that client's fd from polling
             poll_fds[i].fd = -1;
             num_track_fds--;
           }
@@ -219,11 +238,11 @@ int main (int argc, char* argv[])
 			}
       if (poll_fds[i].revents & POLLOUT)
       {
-        /*write stuff*/
-        /* if write returns 0, set the event value of fd to POLLIN */
+        //write to client
         if (first_packet[i-1])
         {
-          int send_len_to_client = htonl(client_send_len[i - 1]);
+          //if first packet, send the length to client
+          int send_len_to_client = htonl(client_send_len[i - 1]); //host to network
           int len = write(poll_fds[i].fd, &send_len_to_client, sizeof(send_len_to_client));
           if (len < 0)
           {
@@ -232,9 +251,10 @@ int main (int argc, char* argv[])
           }          
           first_packet[i-1] = 0;
         }
+        //Start writing content of file fragment to client fd
         if (client_send_len[i-1] > 0 && client_send_len[i-1] <= WRITE_SIZE)
         {
-          //int len = write(poll_fds[i].fd, client_send_buffer[i-1] + relative_write_ptr[i-1], WRITE_SIZE - client_send_len[i-1]);
+          //if everything is written, flip the event to POLLIN
           int len = write(poll_fds[i].fd, client_send_buffer[i-1] + relative_write_ptr[i-1], client_send_len[i-1]);
           if (len < 0)
           {
@@ -247,6 +267,7 @@ int main (int argc, char* argv[])
         }
         else if (client_send_len[i-1] <= 0)
         {
+          //if everything is written, flip the event to POLLIN
           poll_fds[i].events = POLLIN;            
           first_packet[i-1] = 1;
         }
@@ -266,9 +287,10 @@ int main (int argc, char* argv[])
     }
   }
 
-  //MERGE LOGIC HERE
-  //Reconstruct the structure arrays on the server side
-
+  //At this point we have a buffer for each sorted frag file content that client sent back.
+  //Reconstruct each buffer into a struct Line array
+  //Merge the first array to second array, and the resultant array to the third, and so on and so forth until we get one single merged array
+  //We will leverage AVL logic here as well
   
   struct Line **temp_avl;
   struct Line **merged_avl;
@@ -280,64 +302,58 @@ int main (int argc, char* argv[])
     struct Node *root = NULL; 
     parse_len = 0, ptr_loc = 0;
     int count=0;
+    //server_avl will contain the contents of each buffer
     struct Line **server_avl;
-    server_avl = malloc(10 * sizeof(struct Line*)); //starting with 10 lines per file
-    char* buff_line = malloc(100*sizeof(char));
+    server_avl = malloc(10 * sizeof(struct Line*)); 
+
+    char* buff_line = malloc(100*sizeof(char)); //buff_line will extract each line from the buffer
+    
+    //The following while loop parses through a buffer and constructs the struct Line array
     while (parse_len < server_recv_len[i] && parse_len > -1)
     {
         if (count >= 10)
         {
-            server_avl= realloc(server_avl, (count + 10 * 2) * sizeof(struct Line)); 
+            server_avl= realloc(server_avl, (count + 10 * 2) * sizeof(struct Line*)); 
         }
         parse_len = parse_buffer(server_recv_buffer[i], &buff_line, server_recv_len[i], ptr_loc); //ptr_loc provides next relative position of pointer
         ptr_loc += parse_len;
         int n = -1;
         server_avl[count]= (struct Line*)malloc(sizeof(struct Line)); 
         int read = sscanf(buff_line, "%d", &n);
-        server_avl[count]->content = malloc((strlen(buff_line)+1) * sizeof(char));
+        server_avl[count]->content = malloc((strlen(buff_line) + 1) * sizeof(char));
         strncpy(server_avl[count]->content, buff_line, strlen(buff_line));
         server_avl[count]->content[strlen(buff_line) + 1] = '\0'; 
-        printf("String: %d: %s", strlen(server_avl[count]->content), server_avl[count]->content);
         server_avl[count]->num = n;
         root = insert(root, server_avl[count]); 
         count++;
         if (server_recv_len[i] - ptr_loc <= 0) break;
     }    
-    if (!first_pass)
-    {
-      printf("Seg fault 1\n");
-      free(merged_avl);
-    }
-    first_pass = 0;
-    printf("Count: %d, temp_count: %d\n", count, temp_count);
-    printf("Seg fault 9\n");
-    merged_avl = malloc((temp_count + count) * sizeof(struct Line*));
-    printf("Seg fault 10\n");
-    merge(server_avl, temp_avl, merged_avl, count, temp_count);
+
+    merged_avl = malloc((temp_count + count) * sizeof(struct Line*)); //this will be the final array
+
+    //call merge to merge array. The first time, temp_avl is empty
+    merge(server_avl, temp_avl, merged_avl, count, temp_count); 
     temp_count += count;
-    printf("Seg fault 11\n");
+
+    //Allocate some memory to temp_avl and move merge_avl to it. This will be used to merge with the next array constructed from next buffer
     temp_avl = malloc(temp_count * sizeof(struct Line*));
-    printf("Seg fault 12\n");
     for (int i = 0; i < temp_count; i++)
     {
       temp_avl[i] = merged_avl[i];
     }
-    printf("Seg fault 2\n");
     free(buff_line);
-    printf("Seg fault 3\n");
-    printf("Merged AVL here: %d\n",temp_count);
-    for (int j=0; j < temp_count; j++)
-    {
-      printf("%s", merged_avl[j]->content);
-    }    
-  }  
-
-  printf("Final merge:\n");
-  for (int j=0; j < temp_count; j++)
-  {
-    printf("%s", merged_avl[j]->content);
   }
 
+  //Write to output file and free up memory
+  for (int j=0; j < temp_count; j++)
+  {
+    int rcode = write(frag_file_fd[0], merged_avl[j]->content, strlen(merged_avl[j]->content));
+    free(merged_avl[j]->content);
+    free(merged_avl[j]);
+  }
+
+  //Free up any remaining memory allocations
+  free(merged_avl);
 
   for (int i = 0; i < frag_file_count - 1; i++)
   {

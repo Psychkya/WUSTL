@@ -13,7 +13,7 @@ int create_socket()
 	memset(&s_address, 0, sizeof(s_address)); //clear structure
 	s_address.sin_family = AF_INET;
 	s_address.sin_addr.s_addr = INADDR_ANY;
-	s_address.sin_port = htons(PORT);
+	s_address.sin_port = htons(server_port);
 
 
 	int address_len = sizeof(s_address);
@@ -86,8 +86,6 @@ void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned i
 		if (store_buff == NULL)
 		{
 			recv_buff[recv_len + 1] = '\0';
-			printf("%s", recv_buff);
-			
 		}
 		else
 		{
@@ -98,7 +96,6 @@ void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned i
 			strncpy(store_buff, recv_buff, recv_len);
 			int store_len = strlen(store_buff);
 			store_buff[store_len + 1] = '\0';
-			printf("%s", store_buff);
 			free(store_buff);
 			store_buff = NULL;
 			*malloc_len = 0;
@@ -122,18 +119,4 @@ void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned i
 		strncpy(store_buff, recv_buff, recv_len);
 		*malloc_len -= recv_len;
 	}
-	//Print and reshuffle buffer
-	/*
-	char *found = strchr(store_buff, delim);
-	if (found != NULL)
-	{
-		char* temp_buff = NULL;
-		int loc = found - store_buff;
-		char* print_buff = (char*)malloc((loc+1)*sizeof(char));
-		memcpy(print_buff, store_buff, loc);
-		print_buff[loc] = '\0';
-		
-		
-	}
-	*/
 }

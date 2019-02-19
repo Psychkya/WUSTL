@@ -1,0 +1,2 @@
+##Design:
+The server reads each fragmented file and creates a buffer for each. If there are 4 fragmented file, there will be 4 buffer with the file contents.

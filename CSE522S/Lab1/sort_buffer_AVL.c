@@ -131,13 +131,10 @@ void printInorder(struct Node* node, char* output_buffer, int *output_ptr)
   
     /* first recur on left child */
     printInorder(node->left, output_buffer, output_ptr); 
-  
-    printf("content len: %d, content:  %s\n", strlen(node->key->content), node->key->content);
-    
+   
     strncpy(output_buffer + *output_ptr, node->key->content, strlen(node->key->content) );
     (*output_ptr) += strlen(node->key->content);
 
-    printf("out ptr: %d, out: %s", *output_ptr, output_buffer);
     /* now recur on right child */
     printInorder(node->right, output_buffer, output_ptr); 
 } 
@@ -163,21 +160,14 @@ void sort_buffer_AVL(char *input_buffer, char *output_buffer, int buffer_len)
         memset(p_buffer, 0, sizeof(p_buffer));
         parse_len = parse_buffer(input_buffer, &p_buffer, buffer_len, ptr_loc); //ptr_loc provides next relative position of pointer
         ptr_loc += parse_len;
-        printf("d:%d, l:%s",strlen(p_buffer), p_buffer);
         
         int n = -1;
         ptr[count]= (struct Line*)malloc(sizeof(struct Line)); 
         int read = sscanf(p_buffer, "%d", &n);
-        //char* string = malloc(strlen(p_buffer) * sizeof(char));
-        //ptr[count]->content = malloc(strlen(p_buffer) * sizeof(char));
         ptr[count]->content = malloc((strlen(p_buffer)+1) * sizeof(char));
-        //= (char *) malloc(128);;
         strncpy(ptr[count]->content, p_buffer, strlen(p_buffer));
         ptr[count]->content[strlen(p_buffer) + 1] = '\0'; 
-        //printf("String: %d: %s", strlen(string), string);
-        printf("String: %d: %s", strlen(ptr[count]->content), ptr[count]->content);
         ptr[count]->num = n;
-        //ptr[count]->content = string;
         root = insert(root, ptr[count]); 
         count++;
         if (buffer_len - ptr_loc <= 0) break;
@@ -213,7 +203,7 @@ void merge(struct Line* arr1[], struct Line* arr2[],struct Line *mergedArr[], in
         k++; 
     } 
   
-    // If there are more elements in first array 
+    // If there are more elements
     if (m > n)
     {
         while (i < m) 

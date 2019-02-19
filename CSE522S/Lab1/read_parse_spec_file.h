@@ -10,5 +10,6 @@
 #include <fcntl.h>
 
 int read_fd(int*  fd, char** buff, int len);
-//int parse_buffer(char* buff, char** p_buff, int buff_len, int p_len, int ptr_loc);
 int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc);
+int string_to_int(char* a); //convert string to integer
+int is_string_digit(char* a); //check if string is a number

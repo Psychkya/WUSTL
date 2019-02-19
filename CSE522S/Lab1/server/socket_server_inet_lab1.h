@@ -9,6 +9,7 @@
 #define BACK_LOG 50
 #define PORT 9000
 
+int server_port;
 int server_fd, rw_fd;
 struct sockaddr_in s_address, c_address;
 

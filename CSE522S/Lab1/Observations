@@ -1,3 +1,0 @@
-1. parse_buffer got overflow issue
-2. Fix server send buffer size
-3. Fix client send buffer size

@@ -20,6 +20,22 @@
 
 int main(int argc, char* argv[])
 {
+	if (argc != 3)
+	{
+		printf("Incorrect usage\n");
+		printf("socket_client_inet_lab1 <IP Address> <Port>");
+	}
+
+	int client_port;
+
+	  //assign port
+	if (is_string_digit(argv[2]) < 0)
+	{
+		printf("Port entered is non numeric\n");
+		printf("Usage: socket_client_inet_lab1 <IP Address> <Port>\n"); 
+		return -1;
+	}
+	client_port = string_to_int(argv[2]);
 
 	char *send_buff;
 	char *read_buff;
@@ -42,8 +58,9 @@ int main(int argc, char* argv[])
 	
 	memset(&c_address, 0, sizeof(c_address)); //clear structure
 	c_address.sin_family = AF_INET;
-	c_address.sin_port = htons(PORT);
-	inet_aton(IP_ADDR, &c_address.sin_addr);
+	c_address.sin_port = htons(client_port);
+	//inet_aton(IP_ADDR, &c_address.sin_addr);
+	inet_aton(argv[1], &c_address.sin_addr);
 	
 	if((connect(client_fd, (struct sockaddr*)&c_address, sizeof(c_address))) < 0)
 	{
@@ -92,13 +109,9 @@ int main(int argc, char* argv[])
 		}
 		
 	}
-	printf("Buffer received: %s\n", read_buff);
 	first_packet = 1;
 
 	//AVL stuff here:
-	//Got read_buff
-	//Got send_buff
-	//Already know length of buffer
 
 	send_buff = malloc(server_buff_len * sizeof(char));
 
