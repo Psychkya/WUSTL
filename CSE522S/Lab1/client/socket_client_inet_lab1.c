@@ -111,10 +111,9 @@ int main(int argc, char* argv[])
 	}
 	first_packet = 1;
 
+
 	//AVL stuff here:
-
 	send_buff = malloc(server_buff_len * sizeof(char));
-
 	sort_buffer_AVL(read_buff, send_buff, server_buff_len);
 
 	//write buffer back to server
@@ -159,7 +158,6 @@ int main(int argc, char* argv[])
 			write_ptr += len;
 		}
 	}
-
 
 	free(read_buff);
 	free(send_buff);

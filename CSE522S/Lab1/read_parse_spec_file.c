@@ -45,7 +45,7 @@ int read_fd (int *fd, char** buff, int len)
 	return ptr_loc;
 }
 
-int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc)
+int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc, int *malloc_len)
 {
    //start searching from the position of last know LF. The first time it will be the beginning of buffer.
    char* found = strchr(buff + ptr_loc, '\n'); 
@@ -53,7 +53,11 @@ int parse_buffer(char* buff, char** p_buff, int buff_len, int ptr_loc)
    if (found != NULL)
    {
 		loc = found - (buff + ptr_loc) + 1; //first relative position where LF is located
-		*p_buff = malloc((loc + 1)*sizeof(char));
+		if (loc >= *malloc_len)
+		{
+			*malloc_len += (loc + 1000);
+			*p_buff = realloc(*p_buff, *malloc_len  *sizeof(char));
+		}
 		memset(*p_buff, 0, loc+1);
 		memcpy(*p_buff, buff + ptr_loc, loc); //copy from buffer to output buffer
    }

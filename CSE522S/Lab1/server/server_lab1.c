@@ -50,6 +50,7 @@ int main (int argc, char* argv[])
 	
   char *read_buff = NULL; //buffer to read entire spec file
   char *p_buffer = NULL; //buffer to retrieve name of each fragmented file
+  int malloc_p_buffer = 100; //start with 100
 
   //open spec file
 	spec_file_fd = open(argv[1], O_RDONLY); 
@@ -60,13 +61,13 @@ int main (int argc, char* argv[])
 	}
 	
 	tot_len = read_fd(&spec_file_fd, &read_buff, READ_SIZE); //read entire contents of spec file to read_buff
-  p_buffer = malloc(100*sizeof(char)); //allocate a size to buffer that will hold each fragment file name
+  p_buffer = malloc(malloc_p_buffer*sizeof(char)); //allocate a size to buffer that will hold each fragment file name
 
   //parse through read_buff and get each file name. Keep a count of files in frag_file_count
   while (parse_len < strlen(read_buff) && parse_len > -1)
   {
 
-    parse_len = parse_buffer(read_buff, &p_buffer, tot_len, ptr_loc); //ptr_loc provides next relative position of pointer
+    parse_len = parse_buffer(read_buff, &p_buffer, tot_len, ptr_loc, &malloc_p_buffer); //ptr_loc provides next relative position of pointer
     ptr_loc += parse_len;
     //Remove the newline character to get each file name
     char *file_name = malloc(strlen(p_buffer) * sizeof(char));
@@ -292,10 +293,12 @@ int main (int argc, char* argv[])
   //Merge the first array to second array, and the resultant array to the third, and so on and so forth until we get one single merged array
   //We will leverage AVL logic here as well
   
-  struct Line **temp_avl;
-  struct Line **merged_avl;
+  int malloc_merged_avl = 1000;
+  struct Line **temp_avl = (struct Line**) malloc(malloc_merged_avl * sizeof(struct Line*));
+  struct Line **merged_avl = (struct Line**) malloc(malloc_merged_avl * sizeof(struct Line*));
   int temp_count = 0;
   int first_pass = 1;
+  int malloc_buff_line = 100;
 
   for (int i = 0; i < frag_file_count - 1; i++)
   {
@@ -304,46 +307,51 @@ int main (int argc, char* argv[])
     int count=0;
     //server_avl will contain the contents of each buffer
     struct Line **server_avl;
-    server_avl = malloc(10 * sizeof(struct Line*)); 
+    int malloc_server_avl = 1000;
+    server_avl = (struct Line**)malloc(malloc_server_avl * sizeof(struct Line*)); 
 
-    char* buff_line = malloc(100*sizeof(char)); //buff_line will extract each line from the buffer
+    char* buff_line = malloc(malloc_buff_line*sizeof(char)); //buff_line will extract each line from the buffer
     
     //The following while loop parses through a buffer and constructs the struct Line array
     while (parse_len < server_recv_len[i] && parse_len > -1)
     {
-        if (count >= 10)
+        if (count >= malloc_server_avl)
         {
-            server_avl= realloc(server_avl, (count + 10 * 2) * sizeof(struct Line*)); 
+      			malloc_server_avl += (count + 1000);
+            server_avl= (struct Line**)realloc(server_avl, malloc_server_avl * sizeof(struct Line*)); 
         }
-        parse_len = parse_buffer(server_recv_buffer[i], &buff_line, server_recv_len[i], ptr_loc); //ptr_loc provides next relative position of pointer
+        parse_len = parse_buffer(server_recv_buffer[i], &buff_line, server_recv_len[i], ptr_loc, &malloc_buff_line); //ptr_loc provides next relative position of pointer
         ptr_loc += parse_len;
         int n = -1;
         server_avl[count]= (struct Line*)malloc(sizeof(struct Line)); 
         int read = sscanf(buff_line, "%d", &n);
-        server_avl[count]->content = malloc((strlen(buff_line) + 1) * sizeof(char));
-        strncpy(server_avl[count]->content, buff_line, strlen(buff_line));
-        server_avl[count]->content[strlen(buff_line) + 1] = '\0'; 
+        server_avl[count]->content = malloc((parse_len + 1) * sizeof(char));
+        strncpy(server_avl[count]->content, buff_line, parse_len);
+        server_avl[count]->content[parse_len + 1] = '\0'; 
         server_avl[count]->num = n;
         root = insert(root, server_avl[count]); 
         count++;
         if (server_recv_len[i] - ptr_loc <= 0) break;
     }    
-
-    merged_avl = malloc((temp_count + count) * sizeof(struct Line*)); //this will be the final array
+    
+    if (temp_count + count > malloc_merged_avl)
+    {
+      malloc_merged_avl += (temp_count + count + 1000);
+      merged_avl = (struct Line**)realloc(merged_avl, malloc_merged_avl * sizeof(struct Line*)); //this will be the final array
+      temp_avl = (struct Line**)realloc(temp_avl, malloc_merged_avl * sizeof(struct Line*));
+    }
 
     //call merge to merge array. The first time, temp_avl is empty
     merge(server_avl, temp_avl, merged_avl, count, temp_count); 
     temp_count += count;
-
-    //Allocate some memory to temp_avl and move merge_avl to it. This will be used to merge with the next array constructed from next buffer
-    temp_avl = malloc(temp_count * sizeof(struct Line*));
+    
     for (int i = 0; i < temp_count; i++)
     {
       temp_avl[i] = merged_avl[i];
     }
+    
     free(buff_line);
   }
-
   //Write to output file and free up memory
   for (int j=0; j < temp_count; j++)
   {
@@ -368,6 +376,5 @@ int main (int argc, char* argv[])
     free(client_send_buffer[i]);
   }
   free(client_send_buffer);
-
 	return 0;
 }

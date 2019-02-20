@@ -66,5 +66,5 @@ void printInorder(struct Node* node, char* output_buffer, int *output_ptr);
 //Call AVL insert function
 void sort_buffer_AVL(char *input_buffer, char *output_buffer, int read_buff_len);
 
-
+//Merge two arrays into one
 void merge(struct Line* arr1[], struct Line* arr2[],struct Line *mergedArr[], int m, int n);
