@@ -20,7 +20,6 @@
 #define READ_SIZE 1456   //length that can be sent over a socket without defragmentation
 #define WRITE_SIZE 1456  //length that can be sent over a socket without defragmentation
 #define NUM_FRAG_FILES 100  //Initial number of frag files
-//#define NUM_POLLS 1000 //server socket + n number of client fds to poll for
 
 int main (int argc, char* argv[])
 {
@@ -293,12 +292,12 @@ int main (int argc, char* argv[])
   //Merge the first array to second array, and the resultant array to the third, and so on and so forth until we get one single merged array
   //We will leverage AVL logic here as well
   
-  int malloc_merged_avl = 1000;
+  int malloc_merged_avl = 1000; //Assume 1000 lines per fragment file. Dynamically increase if needed
   struct Line **temp_avl = (struct Line**) malloc(malloc_merged_avl * sizeof(struct Line*));
   struct Line **merged_avl = (struct Line**) malloc(malloc_merged_avl * sizeof(struct Line*));
   int temp_count = 0;
   int first_pass = 1;
-  int malloc_buff_line = 100;
+  int malloc_buff_line = 100; 
 
   for (int i = 0; i < frag_file_count - 1; i++)
   {
@@ -334,6 +333,7 @@ int main (int argc, char* argv[])
         if (server_recv_len[i] - ptr_loc <= 0) break;
     }    
     
+    //increase array size if needed
     if (temp_count + count > malloc_merged_avl)
     {
       malloc_merged_avl += (temp_count + count + 1000);

@@ -16,6 +16,6 @@ int create_socket();
 int accept_connection();
 int send_to_client(char* send_buff, unsigned int size);
 int recv_from_client(char* recv_buff, unsigned int size);
-void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned int* malloc_len, char delim);
+void store_and_print(char* recv_buff, int recv_len, char** store_buff, char delim);
 
 

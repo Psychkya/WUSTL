@@ -9,6 +9,7 @@
 #include "socket_server_inet.h"
 #define DELIMITER '\n'
 
+
 int main(void)
 {
 	struct pollfd fds[3];
@@ -82,7 +83,6 @@ int main(void)
 			}
 			if(fds[2].revents & POLLIN)
 			{
-				printf("got data...\n");
 				char recv_buff[1024];
 				unsigned int s = sizeof(recv_buff) - 1;
 				memset(recv_buff, 0, sizeof(recv_buff));				
@@ -99,7 +99,6 @@ int main(void)
 				}
 				else
 				{
-					printf("Print buff: %s\n", recv_buff);
 					if (strcmp(recv_buff, "Quit") == 0)
 					{
 						printf("Terminating program...\n");
@@ -111,17 +110,18 @@ int main(void)
 					}
 					else
 					{
-						store_and_print(recv_buff, recv_len, store_buff, &malloc_len, DELIMITER);
+						store_and_print(recv_buff, recv_len, &store_buff, DELIMITER);
 					}
 
 				}
 				
 			}
+			
 		}
 
 
 	}
-	   
+	free(store_buff);   
 
    exit(EXIT_SUCCESS);
 }

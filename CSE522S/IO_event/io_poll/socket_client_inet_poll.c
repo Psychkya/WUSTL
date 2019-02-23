@@ -62,8 +62,10 @@ int main(int argc, char* argv[])
 		printf("Sending to server....\n");
 		strcpy(send_buff, "First Message to Server\n");
 		send(client_fd, send_buff, strlen(send_buff), 0);	
-		strcpy(send_buff, "Second Message to Server\n");
+		strcpy(send_buff, "Second Message to Server ");
 		send(client_fd, send_buff, strlen(send_buff), 0);			
+		strcpy(send_buff, "Third Message to Server\n");
+		send(client_fd, send_buff, strlen(send_buff), 0);					
 	}
 	close(client_fd);
 	return 0;

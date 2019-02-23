@@ -15,6 +15,7 @@ Server will then merge the fragments back to recreate the complete file.
     and events will be set to POLLOUT. Server will then start sending data to clients that have made connection thus far. Once a particular client is sent all the data,
     the event will be flipped to POLLIN to receive data back from that client. One client could be in POLLOUT state to be sent data while another could be in POLLIN state
     to receive data.
+    Code from previous studios is reused. The create_socket() and accept_connection() functions from socket_server_inet_lab1.h is used.
 
     ###Client data processing: The server will read all the data received from client into its own buffer. If there is 4 clients (4 file fragments), data from each will
     be read into 4 separate buffers. Once all the buffers are ready, they will be converted to 4 separate AVL tree. The individual AVL trees will already be in sorted 
@@ -43,15 +44,29 @@ Server will then merge the fragments back to recreate the complete file.
 
 ##Build Process:
     Extract the contents of the zip file to a location of your choice. Copy the file fragments along with the spec file to the 'server' folder. Run make in the server
-    folder to create the server executable. Run make on the client folder to create the client executable. Run the server from a terminal with the following syntax:
+    folder to create the server executable. Run make on the client folder to create the client executable. 
+    From the server directory, run the server with the following syntax:
     server_lab1 <spec file name> <port>
-    Run the client from a separate terminal with the following syntax:
+    From a separate terminal and from the client directory, run the client with the following syntax:
     socket_client_inet_lab1 <IP address> <port>
+    There is a script to aid in running multiple clients.
     For localhost, please specify the IP address as 127.0.0.1. Make sure to use a port that is available. Also note that the server and client uses some common code. So
     relative file paths as provided in the tar file needs to be maintained.
-    The compressed folder contains a set of test files. The client folder contains a test script to spawn multiple clients.
+    The compressed folder contains a set of test files.
 
 ##Testing:
     1) Tested with jabberwocky* files provided with requirements. Recreates the final file correctly.
-    2) Took server_lab1.c and cut into 5 files:
+    2) Took server_lab1.c and cut into 5 files using the provided file_shuffle_cut.cpp program
+    3) The final file created was server_lab1_complete. Used the following sed command to strip off line numbers.
+        cat server_lab1_complete | sed 's/^[0-9]*//' > server_lab1_nonum
+    4) Compiled the code re-generated from server code and ran it against jabberwocky* files. It successfully recrated the file
     
+    ####Testing Issues:
+    Most of the testing issues were with memory corruption. These were very hard to track down, especially with a larger file that is split up. GDB and print statements
+    points out where a malloc is failing or where a segmentation fault is occuring. But the root of the problem does not lie in that particular statement. A good amount
+    of effort was put to make sure proper memory allocation is taking place and is freed when no longer needed. The final strategy employed was to allocate a reasonable
+    amount of memory and re-allocate twice that amount if more is needed. This made the application a bit more memory intensive, but with the given deadline, it is 
+    reasonably successfully. There may still be some buffer overflow issues lingering, but none surfaced with the amount of testing done.
+
+##Development Effort:
+     On average 3 hrs per day for 12 days was put towards the project. Roughly 50% of the time was spent debugging memory and buffer issues.

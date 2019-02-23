@@ -1,4 +1,9 @@
 #include "socket_server_inet.h"
+#define BUFF_SIZE 2048
+
+int ptr_loc = 0;
+int buff_len = 0;
+int malloc_len = 0;
 
 int create_socket()
 {
@@ -78,62 +83,38 @@ int recv_from_client(char* recv_buff, unsigned int buff_size)
 		
 }
 
-void store_and_print(char* recv_buff, int recv_len, char* store_buff, unsigned int* malloc_len, char delim) //check - should be strcat instead of strncpy (or use ptr math)
+void store_and_print(char* recv_buff, int recv_len, char** store_buff, char delim) //check - should be strcat instead of strncpy (or use ptr math)
 {
-	char* found = strchr(recv_buff, delim);
-	if (found != NULL)
+	if (recv_len >= malloc_len - ptr_loc)
 	{
-		if (store_buff == NULL)
+		malloc_len += (recv_len + BUFF_SIZE);
+		*store_buff = (char*)realloc(*store_buff, malloc_len*sizeof(char));
+	}
+	strncpy(*store_buff + buff_len, recv_buff, recv_len);
+	int found_flag = 1;
+	while( found_flag )
+	{
+		char* found = strchr(*store_buff + ptr_loc, delim);
+		if (found != NULL)
 		{
-			recv_buff[recv_len + 1] = '\0';
-			printf("%s", recv_buff);
-			
+			int loc = found - (*store_buff + ptr_loc) + 1;
+			char *print_buf = malloc(loc+1 *sizeof(char));
+			strncpy(print_buf, *store_buff + ptr_loc, loc);
+			print_buf[loc+1] = '\0';
+			free(print_buf);
+			ptr_loc += loc;
+			if (ptr_loc >= recv_len)
+			{
+				found_flag = 0;
+				ptr_loc = 0;
+				buff_len = 0;
+				memset(*store_buff, 0, malloc_len);
+			}
 		}
 		else
 		{
-			if (recv_len >= *malloc_len)
-			{
-				store_buff = (char*)(realloc(store_buff, (*malloc_len + recv_len + 1) * sizeof(char)));
-			}
-			strncpy(store_buff, recv_buff, recv_len);
-			int store_len = strlen(store_buff);
-			store_buff[store_len + 1] = '\0';
-			printf("%s", store_buff);
-			free(store_buff);
-			store_buff = NULL;
-			*malloc_len = 0;
+			found_flag = 0;
+			buff_len += recv_len;
 		}
 	}
-	else if (*malloc_len == 0)
-	{
-		store_buff = (char*)(malloc(2048 * sizeof(char)));
-		memcpy(store_buff, recv_buff, recv_len);
-		*malloc_len = 2048 - recv_len;
-		
-	}
-	else if(recv_len >= *malloc_len)
-	{
-		store_buff = (char*)(realloc(store_buff, 2048 * sizeof(char)));
-		strncpy(store_buff, recv_buff, recv_len);
-		*malloc_len = 2048 - recv_len;
-	}
-	else
-	{
-		strncpy(store_buff, recv_buff, recv_len);
-		*malloc_len -= recv_len;
-	}
-	//Print and reshuffle buffer
-	/*
-	char *found = strchr(store_buff, delim);
-	if (found != NULL)
-	{
-		char* temp_buff = NULL;
-		int loc = found - store_buff;
-		char* print_buff = (char*)malloc((loc+1)*sizeof(char));
-		memcpy(print_buff, store_buff, loc);
-		print_buff[loc] = '\0';
-		
-		
-	}
-	*/
 }
