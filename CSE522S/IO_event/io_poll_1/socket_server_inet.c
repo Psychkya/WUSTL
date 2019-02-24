@@ -101,6 +101,7 @@ void store_and_print(char* recv_buff, int recv_len, char** store_buff, char deli
 			char *print_buf = malloc(loc+1 *sizeof(char));
 			strncpy(print_buf, *store_buff + ptr_loc, loc);
 			print_buf[loc+1] = '\0';
+			printf("%s", print_buf);
 			free(print_buf);
 			ptr_loc += loc;
 			if (ptr_loc >= recv_len)

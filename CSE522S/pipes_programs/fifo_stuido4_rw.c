@@ -10,7 +10,7 @@
 void rpi_signal_handler(int rpiSig); //function definition
 char* fifo_file = "/home/pi/WUSTL/CSE522S/pipes_programs/fifotest";
 FILE* rfile;
-//FILE* wfile;
+FILE* wfile;
 
 int main(void)
 {
@@ -35,7 +35,7 @@ int main(void)
 	}
 
 	rfile = fopen(fifo_file, "r");
-	//wfile = fopen(fifo_file, "w");
+	wfile = fopen(fifo_file, "w");
 	if (rfile == NULL)
 	{
 		perror("Error opening fifo file");

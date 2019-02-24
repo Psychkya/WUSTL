@@ -51,6 +51,7 @@ int main(void)
 			if(fds[0].revents & POLLIN)
 			{
 				int ret = read(STDIN_FILENO, buff, 99);
+				buff[100] = '\0';
 				if (ret > 0)
 				{
 					printf("Len: %d, Data: %s\n", ret, buff);
