@@ -33,7 +33,19 @@ int create_socket()
 
 int talk_2_client()
 {
-    char* write_buff = "Hello client!\n"; 		
+    char host_name[100];
+	if (gethostname(host_name, 100) < 0)
+	{
+		strcpy(host_name, "hostname error\n");
+	}
+	char write_buff[2048];
+	strcpy(write_buff, host_name);
+	strcat(write_buff, "\n");
+	time_t curr_time = time(NULL);
+	char* time_string = ctime(&curr_time);
+	strcat(write_buff, time_string);
+
+
     
     int c_len = sizeof(c_address);		
 	if((rw_fd = accept(server_fd, (struct sockaddr*)&c_address, &c_len)) < 0)		

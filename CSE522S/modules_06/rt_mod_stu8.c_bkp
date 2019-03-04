@@ -49,7 +49,7 @@ static int rt_timer_init(void)
 	time_int_var = ktime_set(period_sec, period_nsec);
 	hrtimer_init(&hr_timer_var, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	hr_timer_var.function = &timer_function;
-	sp.sched_priority = 1;
+	sp.sched_priority = 9;
 	
 	thread_var = kthread_create(func_thread,NULL,"rt_timer_thread");
 	if(thread_var)
