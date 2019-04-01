@@ -57,6 +57,8 @@ int main(int argc, char * argv[])
 
     write_ret = write(cec, write_buffer, 10); //write string to cec
 
+    free(write_buffer);
+
     while(!read_efd)
     {
         read_ret = read(efd, &read_efd, sizeof(uint64_t));
@@ -67,6 +69,10 @@ int main(int argc, char * argv[])
         }
         else printf("Memory limit exceeded\n");
     }
+
+    close(cec);
+    close(mom);
+    
 
     return 0;
 

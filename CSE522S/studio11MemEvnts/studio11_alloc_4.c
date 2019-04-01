@@ -41,6 +41,7 @@ int main(int argc, char * argv[])
 
     }
     
+    free(alloc_buffer);
     return 0;
 
 }
