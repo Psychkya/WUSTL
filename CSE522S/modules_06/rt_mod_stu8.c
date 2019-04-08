@@ -23,13 +23,14 @@ struct sched_param sp;
 
 static int func_thread(void)
 {
-	int i;
+	int i, loop;
 	while(!kthread_should_stop())
 	{
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
 		printk(KERN_INFO "And I awoke and found me here...On the cold Kernel's side");
-		for (i = 0; i < period_nsec/4; i++) 
+		loop = (period_sec * 1000000000 + period_nsec) / 2;
+		for (i = 0; i < loop; i++) 
 		{
 			ktime_get();
 		}
