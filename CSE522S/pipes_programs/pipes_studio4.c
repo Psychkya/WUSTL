@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h> // wait
+#include <sys/types.h> // wait
 
 void write_pipe(int file_d);
 void read_pipe(int file_d);
@@ -14,7 +16,7 @@ void read_pipe(int file_d);
 int main(void)
 {
 	int fd[2];
-	pid_t childPid;
+	pid_t childPid, parentPid;
 	
 	int pipe_error = pipe(fd);
 	
@@ -39,6 +41,7 @@ int main(void)
 		//write(fd[1], msg, (strlen(msg)+1)); //writing without file stream
 		
 		write_pipe(fd[1]); //using file stream
+		sleep(30);
 		
 		exit(0);
 	}
@@ -49,10 +52,12 @@ int main(void)
 		//char readbuff[50];
 		//int len = read(fd[0], readbuff, sizeof(readbuff));
 		//printf("Received length: %d; Received string: %s", len, readbuff); //reading straight from file descriptor
-		
+		printf("In parent: %d\n", getppid());
 		read_pipe(fd[0]); //using file stream
+		sleep(30);
 	}
 	
+	sleep(30);
 	return 0;
 }
 void write_pipe(int file_d)

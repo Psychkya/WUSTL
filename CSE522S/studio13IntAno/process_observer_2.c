@@ -97,6 +97,7 @@ int main(int argc, char * argv[])
                 if(proc_queue_2[dir_index] == 'y') {
                     /*if new process, print the parent child heirarcy*/
                     printf("Process %d was created\n", dir_index);
+                    memset(get_file_name,0,50);
                     sprintf(get_file_name, "%d", dir_index); //convert index to string to construct file path                   
                     while(recursive_read){
                         /*start reading pid dirs until original parent is found*/
@@ -105,7 +106,7 @@ int main(int argc, char * argv[])
                         fp_cmd = fopen(stat_file, "r"); //open cmdline
                         if (fp_cmd == NULL) {
                             /*if null drop out of recursion*/
-                            perror("cmdline:");
+                            perror(stat_file);
                             recursive_read = 0;
                         }
                         else{
@@ -131,7 +132,7 @@ int main(int argc, char * argv[])
                                 fp_stat = fopen(stat_file, "r"); //read status file
                                 if (fp_stat == NULL) {
                                     /*if null, drop out of recursion*/
-                                    perror("status:");
+                                    perror(stat_file);
                                     recursive_read = 0;
                                 }
                                 else{
@@ -150,6 +151,7 @@ int main(int argc, char * argv[])
                                                 stop_fgets = 1; //ppid found so set flag to drop out
                                                 PPid = strtok(NULL, " :\t"); //split on space, : and tab
                                                 /*remove the newline character - this will be parent ppid dir to read*/
+                                                memset(get_file_name,0,50);
                                                 strncpy(get_file_name,PPid, strlen(PPid) - 1); 
                                             }
                                         }
